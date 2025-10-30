@@ -1,6 +1,0 @@
-@Showtime_Service_HostAddress = http://localhost:5032
-
-GET {{Showtime_Service_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
