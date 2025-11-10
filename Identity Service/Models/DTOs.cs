@@ -36,4 +36,15 @@ namespace Identity_Service.Models.DTO
         [Required]
         public string MatKhauMoi { get; set; } = null!;
     }
+    public class ForgotPasswordDto
+    {
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordDto
+    {
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
+    }
+
 }

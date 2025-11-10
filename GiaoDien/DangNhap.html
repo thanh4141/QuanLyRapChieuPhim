@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Management - Đăng nhập</title>
+    <link rel="stylesheet" href="DangNhap.css">
+</head>
+<body>
+    <div class="background-decoration">
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎬</div>
+            <h1>Cinema Management</h1>
+            <p>Hệ thống quản lý rạp phim</p>
+        </div>
+
+        <div class="form-container">
+            <!-- Login View -->
+            <div id="loginView" class="view active">
+                <h2 style="margin-bottom: 25px; color: #333;">Đăng nhập</h2>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="loginEmail" placeholder="Nhập email của bạn">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="loginPassword" placeholder="Nhập mật khẩu">
+                        <span class="password-toggle" onclick="togglePassword('loginPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="handleLogin()">Đăng nhập</button>
+
+                <div class="links">
+                    <a class="link" onclick="switchView('forgot')">Quên mật khẩu?</a>
+                    <div class="divider">hoặc</div>
+                    <a class="link" onclick="switchView('register')">Chưa có tài khoản? Đăng ký ngay</a>
+                </div>
+            </div>
+
+            <!-- Register View -->
+            <div id="registerView" class="view">
+                <a class="back-btn" onclick="switchView('login')">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z" transform="rotate(180 8 8)"/>
+                    </svg>
+                    Quay lại
+                </a>
+                <h2 style="margin-bottom: 25px; color: #333;">Đăng ký tài khoản</h2>
+
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="registerName" placeholder="Nhập họ và tên">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="registerEmail" placeholder="Nhập email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📱</span>
+                        <input type="tel" id="registerPhone" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="registerPassword" placeholder="Nhập mật khẩu">
+                        <span class="password-toggle" onclick="togglePassword('registerPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu">
+                        <span class="password-toggle" onclick="togglePassword('registerConfirmPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="handleRegister()">Đăng ký</button>
+
+                <div class="links">
+                    <a class="link" onclick="switchView('login')">Đã có tài khoản? Đăng nhập</a>
+                </div>
+            </div>
+
+            <!-- Forgot Password View -->
+            <div id="forgotView" class="view">
+                <a class="back-btn" onclick="switchView('login')">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z" transform="rotate(180 8 8)"/>
+                    </svg>
+                    Quay lại
+                </a>
+                <h2 style="margin-bottom: 15px; color: #333;">Quên mật khẩu</h2>
+                <p style="color: #666; margin-bottom: 25px; font-size: 14px;">
+                    Nhập email của bạn và chúng tôi sẽ gửi link khôi phục mật khẩu
+                </p>
+
+                <div id="forgotSuccess" class="success-message">
+                    ✅ Email khôi phục đã được gửi! Vui lòng kiểm tra hộp thư của bạn.
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="forgotEmail" placeholder="Nhập email của bạn">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="handleForgotPassword()">Gửi link khôi phục</button>
+
+                <div class="links">
+                    <a class="link" onclick="switchView('login')">Quay lại đăng nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="DangNhap.js"></script>
+</body>
+</html>

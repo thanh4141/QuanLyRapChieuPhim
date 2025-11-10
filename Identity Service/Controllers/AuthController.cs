@@ -393,6 +393,89 @@ namespace Identity_Service.Controllers
             }
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            using var con = new SqlConnection(_connStr);
+            await con.OpenAsync();
+
+            var cmd = new SqlCommand("SELECT UserId FROM Users WHERE Email = @Email", con);
+            cmd.Parameters.AddWithValue("@Email", dto.Email);
+
+            var userId = (string?)await cmd.ExecuteScalarAsync();
+
+            if (string.IsNullOrEmpty(userId))
+                return Ok(new { message = "Nếu email tồn tại, hệ thống đã xử lý." });
+
+            // Tạo reset token
+            var token = GenerateResetPasswordToken(userId);
+
+            // Test nội bộ: log ra màn hình console
+            _logger.LogInformation("RESET TOKEN: {Token}", token);
+
+            // Trả token thẳng về để test cho nhanh
+            return Ok(new
+            {
+                message = "Token reset đã được tạo (test nội bộ).",
+                token = token
+            });
+        }
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var principal = handler.ValidateToken(dto.Token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = _config["Jwt:Issuer"],
+                    ValidAudience = _config["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]))
+                }, out _);
+
+                var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var flag = principal.FindFirst("reset_password")?.Value;
+
+                if (flag != "true")
+                    return BadRequest(new { message = "Token không hợp lệ" });
+
+                if (userId == null)
+                    return BadRequest(new { message = "Token không chứa UserId" });
+
+                // Hash mật khẩu mới
+                var userObj = new User { UserId = userId };
+                var newHash = _passwordHasher.HashPassword(userObj, dto.NewPassword);
+
+                using var con = new SqlConnection(_connStr);
+                await con.OpenAsync();
+
+                var cmd = new SqlCommand("sp_UpdateUserPassword", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@MatKhau", newHash);
+
+                var rows = await cmd.ExecuteNonQueryAsync();
+
+                if (rows > 0)
+                    return Ok(new { message = "Đặt lại mật khẩu thành công" });
+
+                return StatusCode(500, new { message = "Không thể cập nhật mật khẩu" });
+            }
+            catch
+            {
+                return BadRequest(new { message = "Token không hợp lệ hoặc đã hết hạn" });
+            }
+        }
+
 
         #region Helper Methods
 
@@ -424,6 +507,30 @@ namespace Identity_Service.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        private string GenerateResetPasswordToken(string userId)
+        {
+            var jwtKey = _config["Jwt:Key"];
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim("reset_password", "true"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(15),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
 
         /// <summary>
         /// Kiểm tra UserId đã tồn tại chưa
